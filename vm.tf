@@ -119,10 +119,10 @@ resource "aws_spot_instance_request" "open_web_ui" {
   user_data_base64 = base64encode(
     templatefile("${path.module}/scripts/provision_vars.sh",
       {
-        open_webui_user    = var.open_webui_user,
-        open_webui_passwrd = random_password.password.result,
-        openai_base        = var.openai_base,
-        openai_key         = var.openai_key
+        open_webui_user   = var.open_webui_user,
+        open_webui_passwd = random_password.password.result,
+        openai_base       = var.openai_base,
+        openai_key        = var.openai_key
   }))
 
   root_block_device {
