@@ -20,8 +20,8 @@ chmod a+r /etc/apt/keyrings/docker.asc
 
 ## Add the repository to Apt sources:
 echo \
-  "deb [arch=$$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
-  $$(. /etc/os-release && echo "$$VERSION_CODENAME") stable" | \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
   tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt-get update
 
@@ -36,7 +36,7 @@ mkdir -p /etc/open-webui.d/
 ## since we are runnning this in a cloud environment, we need to create an admin account before starting the server.
 ## At present the only way to do this is to create the database with an admin account already created.
 
-PASSWD=$$(htpasswd -bnBC 10 "" "${open_webui_passwd}" | tr -d ':\n')
+PASSWD=$(htpasswd -bnBC 10 "" "${open_webui_passwd}" | tr -d ':\n')
 USER="${open_webui_user}"
 
 # Start Open WebUI for the first time so that it creates the database
