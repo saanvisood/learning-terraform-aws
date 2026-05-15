@@ -41,15 +41,14 @@ USER="${open_webui_user}"
 
 # Start Open WebUI for the first time so that it creates the database
 /usr/bin/docker pull ghcr.io/open-webui/open-webui:ollama
-/usr/bin/docker run -d -p 80:8080 -v /etc/open-webui.d:/root/.open_web_ui -v /etc/open-webui.d:/app/backend/data --name openwebui ghcr.io/open-webui/open-webui:ollama
+/usr/bin/docker run -d --rm -p 80:8080 -v /etc/open-webui.d:/root/.open_web_ui -v /etc/open-webui.d:/app/backend/data --name openwebui ghcr.io/open-webui/open-webui:v0.9.5-ollama
 
 # Wait for the server to start
-echo "Checking whether Open Web UI is up"
+echo "Checking whether Open WebUI is up"
 timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%%{http_code}'' localhost)" != "200" ]]; do sleep 5; done' || false
-echo "Open Web UI is up"
+echo "Open WebUI is up"
 
 /usr/bin/docker stop openwebui
-/usr/bin/docker rm openwebui
 
 # Update the database with the admin user
 cat << EOF > /etc/open-webui.d/webui.sql
@@ -76,7 +75,7 @@ echo "OPENAI_BASE='-e OPENAI_API_BASE_URLS=${openai_base}'" >> /etc/open-webui.d
 ## When starting systemd will load the environment file and pass the variables to the container
 cat << 'EOF' > /etc/systemd/system/openwebui.service
 [Unit]
-Description=Open Web UI
+Description=Open WebUI
 After=docker.service
 Requires=docker.service
 
