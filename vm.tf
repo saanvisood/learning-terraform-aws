@@ -105,16 +105,15 @@ resource "aws_key_pair" "open_web_ui" {
 }
 
 # Spot instance
-resource "aws_spot_instance_request" "open_web_ui" {
+resource "aws_instance" "open_web_ui" {
   ami           = data.aws_ami.debian.id
   instance_type = "t3.medium"
 
   associate_public_ip_address = true
   vpc_security_group_ids = [aws_security_group.ssh.id,
   aws_security_group.http.id]
-  key_name             = aws_key_pair.open_web_ui.key_name
-  subnet_id            = aws_subnet.subnet.id
-  wait_for_fulfillment = true
+  key_name  = aws_key_pair.open_web_ui.key_name
+  subnet_id = aws_subnet.subnet.id
 
   user_data_base64 = base64encode(
     templatefile("${path.module}/scripts/provision_vars.sh",
