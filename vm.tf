@@ -104,7 +104,7 @@ resource "aws_key_pair" "open_web_ui" {
   public_key = file("${path.module}/my-terraform-key.pub")
 }
 
-# Spot instance
+# On-demand instance
 resource "aws_instance" "open_web_ui" {
   ami           = data.aws_ami.debian.id
   instance_type = "t3.medium"
@@ -138,7 +138,7 @@ resource "aws_instance" "open_web_ui" {
 # Wait a max of 20 minutes with a 10 second interval
 resource "terracurl_request" "open_web_ui" {
   name   = "open_web_ui"
-  url    = "http://${aws_spot_instance_request.open_web_ui.public_ip}"
+  url    = "http://${aws_instance.open_web_ui.public_ip}"
   method = "GET"
 
   response_codes = [200]
