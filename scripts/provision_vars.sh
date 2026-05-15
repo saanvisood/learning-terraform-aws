@@ -41,7 +41,7 @@ USER="${open_webui_user}"
 
 # Start Open WebUI for the first time so that it creates the database
 /usr/bin/docker pull ghcr.io/open-webui/open-webui:ollama
-/usr/bin/docker run -d --rm -p 80:8080 -v /etc/open-webui.d:/root/.open_web_ui -v /etc/open-webui.d:/app/backend/data --name openwebui ghcr.io/open-webui/open-webui:ollama
+/usr/bin/docker run -d -p 80:8080 -v /etc/open-webui.d:/root/.open_web_ui -v /etc/open-webui.d:/app/backend/data --name openwebui ghcr.io/open-webui/open-webui:ollama
 
 # Wait for the server to start
 echo "Checking whether Open Web UI is up"
