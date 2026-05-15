@@ -29,15 +29,15 @@ resource "aws_vpc" "open_web_ui" {
 
 # Public subnets (for ALB and bastion)
 resource "aws_subnet" "public_a" {
-  cidr_block        = cidrsubnet(aws_vpc.open_web_ui, cidr_block, 3, 0)
+  cidr_block        = cidrsubnet(aws_vpc.open_web_ui.cidr_block, 3, 0)
   vpc_id            = aws_vpc.open_web_ui.id
   availability_zone = "ca-central-1a"
 }
 
 resource "aws_subnet" "public_b" {
-  cidr_block        = cidrsubnet(aws_instance.open_web_ui, cidr_block, 3, 1)
+  cidr_block        = cidrsubnet(aws_vpc.open_web_ui.cidr_block, 3, 1)
   vpc_id            = aws_vpc.open_web_ui.id
-  availability_zone = "ca-central-1a"
+  availability_zone = "ca-central-1b"
 }
 
 
@@ -45,7 +45,7 @@ resource "aws_subnet" "public_b" {
 resource "aws_subnet" "private" {
   cidr_block        = cidrsubnet(aws_vpc.open_web_ui.cidr_block, 3, 2)
   vpc_id            = aws_vpc.open_web_ui.id
-  availability_zone = "ca-central-1b"
+  availability_zone = "ca-central-1a"
 }
 
 
@@ -156,10 +156,51 @@ resource "aws_route_table_association" "private" {
 }
 
 
+# R53 A type record and alias
+resource "aws_route53_record" "ollama" {
+  zone_id = data.aws_route53_zone.aws_subdomain.zone_id
+  name    = "ollama.aws.saanvisood.dev"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.ollama.dns_name
+    zone_id                = aws_lb.ollama.zone_id
+    evaluate_target_health = true
+  }
+}
+
+
+# ACM DNS Validation through Route 53
+resource "aws_route53_record" "cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.ollama.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      type   = dvo.resource_record_type
+      record = dvo.resource_record_value
+    }
+  }
+  zone_id = data.aws_route53_zone.aws_subdomain.zone_id
+  name    = each.value.name
+  type    = each.value.type
+  records = [each.value.record]
+  ttl     = 60
+}
+
+resource "aws_acm_certificate_validation" "ollama" {
+  certificate_arn         = aws_acm_certificate.ollama.arn
+  validation_record_fqdns = [for r in aws_route53_record.cert_validation : r.fqdn]
+}
+
+
+# Subdomain name as data
+data "aws_route53_zone" "aws_subdomain" {
+  name = "aws.saanvisood.dev"
+}
+
+
 # Security group - HTTPS
 resource "aws_security_group" "https" {
-  name = "allow-all-https"
-
+  name   = "allow-all-https"
   vpc_id = aws_vpc.open_web_ui.id
 
   ingress {
@@ -177,17 +218,16 @@ resource "aws_security_group" "https" {
   }
 }
 
-# Security group - HTTP
-resource "aws_security_group" "http" {
-  name = "allow-all-http"
-
+# Security group - private HTTP from ALB
+resource "aws_security_group" "private_http" {
+  name   = "allow-http-from-alb"
   vpc_id = aws_vpc.open_web_ui.id
 
   ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.https.id]
   }
 
   egress {
@@ -200,8 +240,7 @@ resource "aws_security_group" "http" {
 
 # Security group - SSH
 resource "aws_security_group" "ssh" {
-  name = "allow-all-ssh"
-
+  name   = "allow-all-ssh"
   vpc_id = aws_vpc.open_web_ui.id
 
   ingress {
@@ -209,6 +248,26 @@ resource "aws_security_group" "ssh" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Security group - private SSH from bastion
+resource "aws_security_group" "private_ssh" {
+  name   = "allow-ssh-from-bastion"
+  vpc_id = aws_vpc.open_web_ui.id
+
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ssh.id]
   }
 
   egress {
@@ -227,16 +286,31 @@ resource "aws_key_pair" "open_web_ui" {
 }
 
 
-# On-demand instance
+# Bastion host
+resource "aws_instance" "bastion" {
+  ami           = data.aws_ami.debian.id
+  instance_type = "t3.micro"
+
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [aws_security_group.ssh.id]
+  key_name                    = aws_key_pair.open_web_ui.key_name
+  subnet_id                   = aws_subnet.public_a.id
+
+  tags = {
+    Name = "bastion"
+  }
+}
+
+
+# On-demand instance (where ollama will run)
 resource "aws_instance" "open_web_ui" {
   ami           = data.aws_ami.debian.id
   instance_type = "t3.medium"
 
-  associate_public_ip_address = true
-  vpc_security_group_ids = [aws_security_group.ssh.id,
-  aws_security_group.http.id]
-  key_name  = aws_key_pair.open_web_ui.key_name
-  subnet_id = aws_subnet.private.id
+  associate_public_ip_address = false
+  vpc_security_group_ids      = [aws_security_group.private_ssh.id, aws_security_group.private_http.id]
+  key_name                    = aws_key_pair.open_web_ui.key_name
+  subnet_id                   = aws_subnet.private.id
 
   user_data_base64 = base64encode(
     templatefile("${path.module}/scripts/provision_vars.sh",
@@ -251,21 +325,18 @@ resource "aws_instance" "open_web_ui" {
     volume_size = 30
     volume_type = "gp3"
   }
-
-  tags = {
-    Name = "CheapWorker"
-  }
 }
-
 
 # Create a TerraCurl request to check if the web server is up and running
 # Wait a max of 20 minutes with a 10 second interval
 resource "terracurl_request" "open_web_ui" {
   name   = "open_web_ui"
-  url    = "http://${aws_instance.open_web_ui.public_ip}"
+  url    = "https://ollama.aws.saanvisood.dev"
   method = "GET"
 
   response_codes = [200]
   max_retry      = 120
   retry_interval = 10
+
+  depends_on = [aws_route53_record.ollama, aws_acm_certificate_validation.ollama]
 }
