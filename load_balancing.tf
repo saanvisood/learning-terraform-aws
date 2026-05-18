@@ -5,6 +5,7 @@ resource "aws_lb" "ollama" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.https.id]
   subnets            = [aws_subnet.public_a.id, aws_subnet.public_b.id]
+  depends_on         = [aws_internet_gateway.open_web_ui]
 }
 
 # Target group

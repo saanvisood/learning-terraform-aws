@@ -1,5 +1,9 @@
-output "public_ip" {
-  value = aws_instance.open_web_ui.public_ip
+output "bastion_ip" {
+  value = aws_instance.bastion.public_ip
+}
+
+output "alb_url" {
+  value = "https://ollama.aws.saanvisood.dev"
 }
 
 output "password" {

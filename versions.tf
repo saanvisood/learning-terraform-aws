@@ -1,5 +1,5 @@
 terraform {
-  backend "s3" {
+  backend "s3" { # Storing state file in S3 bucket to avoid drift
     bucket = "saanvisood-terraform-state"
     key    = "ollama/terraform.tfstate"
     region = "ca-central-1"
@@ -13,7 +13,7 @@ terraform {
 
     terracurl = {
       source  = "devops-rob/terracurl"
-      version = "1.2.1"
+      version = "2.2.0"
     }
 
     random = {
