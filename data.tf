@@ -30,7 +30,23 @@ data "terracurl_request" "open_web_ui" {
 # Random password generation for Open WebUI user
 resource "random_password" "password" {
   length  = 16
-  special = false
+  special = true
+}
+
+# Creating AWS Secrets Manager container
+resource "aws_secretsmanager_secret" "open_webui_secret" {
+  name                    = "open-webui-admin-credentials"
+  description             = "Open WebUI admin credentials"
+  recovery_window_in_days = 7
+}
+
+# Storing credentials inside secret container
+resource "aws_secretsmanager_secret_version" "open_webui_secret" {
+  secret_id = aws_secretsmanager_secret.open_webui_secret.id
+  secret_string = jsonencode({
+    username = "admin@demo.gs"
+    password = random_password.password.result
+  })
 }
 
 # SSH key
