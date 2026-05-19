@@ -11,7 +11,7 @@ resource "aws_lb" "ollama" {
 # Target group
 resource "aws_lb_target_group" "ollama" {
   name     = "ollama-tg"
-  port     = 80
+  port     = local.http
   protocol = "HTTP"
   vpc_id   = aws_vpc.open_web_ui.id
 
@@ -24,15 +24,15 @@ resource "aws_lb_target_group" "ollama" {
 resource "aws_lb_target_group_attachment" "ollama" {
   target_group_arn = aws_lb_target_group.ollama.arn
   target_id        = aws_instance.open_web_ui.id
-  port             = 80
+  port             = local.http
 }
 
 # Listener
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.ollama.arn
-  port              = 443
+  port              = local.https
   protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  ssl_policy        = local.ssl_policy
   certificate_arn   = aws_acm_certificate.ollama.arn
 
   default_action {

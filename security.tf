@@ -13,8 +13,8 @@ resource "aws_security_group" "https" {
   egress {
     from_port   = local.port_0
     to_port     = local.port_0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    protocol    = local.all_protocols
+    cidr_blocks = [local.all_traffic_cidr]
   }
 }
 
@@ -24,17 +24,17 @@ resource "aws_security_group" "private_http" {
   vpc_id = aws_vpc.open_web_ui.id
 
   ingress {
-    from_port       = 80
-    to_port         = 80
-    protocol        = "tcp"
+    from_port       = local.http
+    to_port         = local.http
+    protocol        = local.tcp
     security_groups = [aws_security_group.https.id]
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = local.port_0
+    to_port     = local.port_0
+    protocol    = local.all_protocols
+    cidr_blocks = [local.all_traffic_cidr]
   }
 }
 
@@ -44,17 +44,17 @@ resource "aws_security_group" "ssh" {
   vpc_id = aws_vpc.open_web_ui.id
 
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = local.ssh
+    to_port     = local.ssh
+    protocol    = local.tcp
+    cidr_blocks = [local.all_traffic_cidr]
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = local.port_0
+    to_port     = loca.port_0
+    protocol    = local.all_protocols
+    cidr_blocks = [local.all_traffic_cidr]
   }
 }
 
@@ -64,16 +64,16 @@ resource "aws_security_group" "private_ssh" {
   vpc_id = aws_vpc.open_web_ui.id
 
   ingress {
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
+    from_port       = local.ssh
+    to_port         = local.ssh
+    protocol        = local.tcp
     security_groups = [aws_security_group.ssh.id]
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = local.port_0
+    to_port     = local.port_0
+    protocol    = local.all_protocols
+    cidr_blocks = [local.all_traffic_cidr]
   }
 }

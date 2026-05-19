@@ -1,6 +1,6 @@
 # VPC
 resource "aws_vpc" "open_web_ui" {
-  cidr_block           = "10.0.0.0/16"
+  cidr_block           = local.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
 }
@@ -46,7 +46,7 @@ resource "aws_route_table" "public" {
   vpc_id = aws_vpc.open_web_ui.id
 
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block = local.all_traffic_cidr
     gateway_id = aws_internet_gateway.open_web_ui.id
   }
 }
@@ -67,7 +67,7 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.open_web_ui.id
 
   route {
-    cidr_block     = "0.0.0.0/0"
+    cidr_block     = local.all_traffic_cidr
     nat_gateway_id = aws_nat_gateway.main.id
   }
 }

@@ -3,7 +3,7 @@ output "bastion_ip" {
 }
 
 output "alb_url" {
-  value = "https://ollama.aws.saanvisood.dev"
+  value = local.alb_url
 }
 
 output "password" {

@@ -17,7 +17,7 @@ data "aws_ami" "debian" {
 # Wait a max of 20 min, retry every 10 sec
 data "terracurl_request" "open_web_ui" {
   name   = "open_web_ui"
-  url    = "https://ollama.aws.saanvisood.dev"
+  url    = local.alb_url
   method = "GET"
 
   response_codes = [200]
