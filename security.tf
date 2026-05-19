@@ -4,8 +4,8 @@ resource "aws_security_group" "https" {
   vpc_id = aws_vpc.open_web_ui.id
 
   ingress {
-    from_port   = local.https
-    to_port     = local.https
+    from_port   = local.https_port
+    to_port     = local.https_port
     protocol    = local.tcp
     cidr_blocks = [local.all_traffic_cidr]
   }
@@ -24,8 +24,8 @@ resource "aws_security_group" "private_http" {
   vpc_id = aws_vpc.open_web_ui.id
 
   ingress {
-    from_port       = local.http
-    to_port         = local.http
+    from_port       = local.http_port
+    to_port         = local.http_port
     protocol        = local.tcp
     security_groups = [aws_security_group.https.id]
   }
@@ -44,15 +44,15 @@ resource "aws_security_group" "ssh" {
   vpc_id = aws_vpc.open_web_ui.id
 
   ingress {
-    from_port   = local.ssh
-    to_port     = local.ssh
+    from_port   = local.ssh_port
+    to_port     = local.ssh_port
     protocol    = local.tcp
     cidr_blocks = [local.all_traffic_cidr]
   }
 
   egress {
     from_port   = local.port_0
-    to_port     = loca.port_0
+    to_port     = local.port_0
     protocol    = local.all_protocols
     cidr_blocks = [local.all_traffic_cidr]
   }
@@ -64,8 +64,8 @@ resource "aws_security_group" "private_ssh" {
   vpc_id = aws_vpc.open_web_ui.id
 
   ingress {
-    from_port       = local.ssh
-    to_port         = local.ssh
+    from_port       = local.ssh_port
+    to_port         = local.ssh_port
     protocol        = local.tcp
     security_groups = [aws_security_group.ssh.id]
   }

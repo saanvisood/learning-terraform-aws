@@ -8,17 +8,17 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = local.latest_aws_provider
+      version = "~> 6.44.0"
     }
 
     terracurl = {
       source  = "devops-rob/terracurl"
-      version = local.latest_terracurl_v
+      version = "2.2.0"
     }
 
     random = {
       source  = "hashicorp/random"
-      version = local.latest_random_v
+      version = "3.6.2"
     }
 
   }
