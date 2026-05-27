@@ -13,19 +13,18 @@ data "aws_ami" "debian" {
   }
 }
 
-# Create a TerraCurl request to check if the web server is up and running
-# Wait a max of 20 min, retry every 10 sec
-data "terracurl_request" "open_web_ui" {
-  name   = "open_web_ui"
-  url    = local.alb_url
-  method = "GET"
+# # Wait for Open WebUI to be reachable — max 40 min (model pull takes time)
+# data "terracurl_request" "open_web_ui" {
+#   name   = "open_web_ui"
+#   url    = local.alb_url
+#   method = "GET"
 
-  response_codes = [200]
-  max_retry      = 120
-  retry_interval = 10
+#   response_codes = [200]
+#   max_retry      = 240
+#   retry_interval = 10
 
-  depends_on = [aws_route53_record.ollama, aws_acm_certificate_validation.ollama]
-}
+#   depends_on = [aws_route53_record.ollama, aws_acm_certificate_validation.ollama]
+# }
 
 # Random password generation for Open WebUI user
 resource "random_password" "password" {

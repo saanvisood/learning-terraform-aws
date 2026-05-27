@@ -25,17 +25,17 @@ resource "aws_instance" "open_web_ui" {
 
   depends_on = [aws_nat_gateway.main]
 
-  user_data_base64 = base64encode(
-    templatefile("${path.module}/scripts/provision_vars.sh",
-      {
-        open_webui_user   = var.open_webui_user,
-        open_webui_passwd = random_password.password.result,
-        openai_base       = var.openai_base,
-        openai_key        = var.openai_key
-  }))
+  # user_data_base64 = base64encode(
+  #   templatefile("${path.module}/scripts/provision_vars.sh",
+  #     {
+  #       open_webui_user   = var.open_webui_user,
+  #       open_webui_passwd = random_password.password.result,
+  #       openai_base       = var.openai_base,
+  #       openai_key        = var.openai_key
+  # }))
 
   root_block_device {
-    volume_size = 80
+    volume_size = 150
     volume_type = "gp3"
   }
 }
