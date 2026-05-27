@@ -15,8 +15,8 @@ resource "aws_instance" "bastion" {
 
 # On-demand instance (where ollama will run)
 resource "aws_instance" "open_web_ui" {
-  ami           = data.aws_ami.debian.id
-  instance_type = "t3.medium"
+  ami           = data.aws_ami.deep_learning_gpu.id
+  instance_type = "g4dn.2xlarge"
 
   associate_public_ip_address = false
   vpc_security_group_ids      = [aws_security_group.private_ssh.id, aws_security_group.private_http.id]
@@ -35,7 +35,24 @@ resource "aws_instance" "open_web_ui" {
   }))
 
   root_block_device {
-    volume_size = 30
+    volume_size = 80
     volume_type = "gp3"
   }
 }
+
+# Dynamically fetch the latest Ubuntu 22.04 Deep Learning GPU AMI
+data "aws_ami" "deep_learning_gpu" {
+  most_recent = true
+  owners      = ["amazon"] # Official AWS image provider account
+
+  filter {
+    name   = "name"
+    values = ["Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) *"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+}
+

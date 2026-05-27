@@ -9,21 +9,21 @@ resource "aws_vpc" "open_web_ui" {
 resource "aws_subnet" "public_a" {
   cidr_block        = cidrsubnet(aws_vpc.open_web_ui.cidr_block, 3, 0)
   vpc_id            = aws_vpc.open_web_ui.id
-  availability_zone = "ca-central-1a"
+  availability_zone = "us-east-1a"
 }
 
 # Public subnet (Bastion host)
 resource "aws_subnet" "public_b" {
   cidr_block        = cidrsubnet(aws_vpc.open_web_ui.cidr_block, 3, 1)
   vpc_id            = aws_vpc.open_web_ui.id
-  availability_zone = "ca-central-1b"
+  availability_zone = "us-east-1b"
 }
 
 # Private subnet (Open WebUI instance)
 resource "aws_subnet" "private" {
   cidr_block        = cidrsubnet(aws_vpc.open_web_ui.cidr_block, 3, 2)
   vpc_id            = aws_vpc.open_web_ui.id
-  availability_zone = "ca-central-1a"
+  availability_zone = "us-east-1a"
 }
 
 # NAT Gateway
